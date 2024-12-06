@@ -14,23 +14,26 @@ export default function Login() {
  
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevenir el comportamiento predeterminado del formulario
+    e.preventDefault();
     try {
+      console.log("Attempting to sign in with email:", email);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      // Verificar el estado del usuario en la base de datos
+      console.log("User signed in successfully:", user.uid);
+  
       const userDoc = await getDoc(doc(db, "usuarios", user.uid));
       if (userDoc.exists()) {
+        console.log("User document found:", userDoc.data());
+        // Redirect or set user state here
       } else {
+        console.log("User document not found for UID:", user.uid);
         setError("Usuario no encontrado en la base de datos.");
       }
     } catch (err) {
-      console.error("Error al iniciar sesión:", err);
+      console.error("Error details:", err);
       setError(err instanceof Error ? "Error al iniciar sesión: " + err.message : "Error desconocido");
     }
   };
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 gradient-anim mt-3 px-4">
       <div className="bg-white shadow-lg rounded-lg w-full max-w-sm p-6">
