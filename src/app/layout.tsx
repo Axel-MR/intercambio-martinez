@@ -28,18 +28,19 @@ export default function RootLayout({
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        if (window.location.pathname === '/login' || window.location.pathname === '/') {
-          router.push('/inicio');
+        if (window.location.pathname === "/login" || window.location.pathname === "/") {
+          router.push("/inicio");
         }
       } else {
-        if (window.location.pathname !== '/login') {
-          router.push('/login');
+        if (window.location.pathname !== "/login" && window.location.pathname !== "/register") {
+          router.push("/login");
         }
       }
     });
-
+  
     return () => unsubscribe();
   }, [router]);
+  
 
   return (
     <html lang="en">

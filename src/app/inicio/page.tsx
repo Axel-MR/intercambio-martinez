@@ -88,7 +88,7 @@ export default function Inicio() {
           {/* Botón */}
 
           <div className="flex flex-col justify-center items-center h-screen bg-gray-100">
-            <h1 className="text-2xl font-bold mb-4">Lista de Deseos</h1>
+            <h1 className="text-2xl font-bold mb-4 text-gray-700">Lista de Deseos</h1>
             <GlowButton />
           </div>
 

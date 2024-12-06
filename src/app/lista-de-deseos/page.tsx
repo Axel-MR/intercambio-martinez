@@ -1,5 +1,7 @@
 'use client';
 
+import { signOut } from 'firebase/auth'; // Si usas Firebase Authentication
+import { getAuth } from 'firebase/auth';
 import Image from 'next/image';
 import Link from 'next/link';
 import WishList from '../components/WishList';
@@ -13,6 +15,16 @@ const ListasDeDeseos = () => {
     { titulo: 'Kevin', id: 'id_Kevin' },
     { titulo: 'Daniel', id: 'id_Daniel' },
   ];
+
+  const handleSignOut = () => {
+    const auth = getAuth(); // Si usas Firebase
+    signOut(auth).then(() => {
+      // Redirige a la página de inicio de sesión o cualquier página que desees
+      window.location.href = '/login'; // O usa una función de redirección de Next.js
+    }).catch((error) => {
+      console.error('Error al cerrar sesión:', error);
+    });
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -58,9 +70,18 @@ const ListasDeDeseos = () => {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="gradient-anim text-white p-4 text-center shadow-md mt-auto">
+        <button
+          onClick={handleSignOut}
+          className="text-xl font-semibold hover:underline"
+        >
+          Cerrar sesión
+        </button>
+      </footer>
     </div>
   );
 };
 
 export default ListasDeDeseos;
-

@@ -1,7 +1,7 @@
-"use client"
+"use client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGift, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebase/firebaseConfig";
@@ -15,22 +15,33 @@ export default function Register() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
 
+  // Verificar si el usuario ya está autenticado
+  useEffect(() => {
+    if (auth.currentUser) {
+      // Si ya hay un usuario autenticado, redirigir a otra página
+      router.push("/dashboard"); // O la ruta que desees
+    }
+  }, [router]); // Añadido 'router' como dependencia
+  
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
+      // Crear usuario con correo y contraseña
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
   
+      // Guardar los datos adicionales del usuario en Firestore
       await setDoc(doc(db, "usuarios", user.uid), {
         email: user.email,
         username: nickname,
-        role: "normal",
-        status: true,
-        createdAt: serverTimestamp(),
+        role: "normal", // Valor por defecto, puede cambiarse más tarde
+        status: true, // Usuario activo
+        createdAt: serverTimestamp(), // Marca de tiempo del registro
       });
   
       alert("¡Registro exitoso!");
-      router.push("/login");
+      router.push("/login"); // Redirigir al login
     } catch (err) {
       console.error("Error al registrarse:", err);
       if (err instanceof Error) {
@@ -115,7 +126,7 @@ export default function Register() {
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute top-1/2 right-3 transform -translate-y-1/2"
+              className="absolute top-1/2 right-3 transform -translate-y-.5"
             >
               <FontAwesomeIcon
                 icon={showPassword ? faEyeSlash : faEye}
@@ -135,4 +146,3 @@ export default function Register() {
     </div>
   );
 }
-
