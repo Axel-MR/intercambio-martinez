@@ -17,24 +17,19 @@ export default function WishList({ titulo, sorteoId }: WishListProps) {
   const [showNotification, setShowNotification] = useState(false);
 
   const formatTextoConLinks = (texto: string) => {
-    // Dividimos el texto en líneas
     const lines = texto.split('\n');
     
     return lines.map((line, index) => {
       if (line.trim() === '') {
-        // Para líneas vacías, retornamos un salto de línea explícito
         return '<br>';
       }
 
-      // Expresión regular para detectar enlaces
       const urlRegex = /https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
       
-      // Reemplazamos las URLs por los enlaces HTML
       let processedLine = line.replace(urlRegex, (url) => {
         return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">${url}</a>`;
       });
 
-      // Añadimos un salto de línea al final de cada línea, excepto la última
       if (index < lines.length - 1) {
         processedLine += '<br>';
       }
@@ -43,7 +38,6 @@ export default function WishList({ titulo, sorteoId }: WishListProps) {
     }).join('');
   };
 
-  // Obtén el texto desde Firestore cuando el componente se monta
   useEffect(() => {
     const fetchTexto = async () => {
       try {
@@ -86,8 +80,6 @@ export default function WishList({ titulo, sorteoId }: WishListProps) {
     }
   };
 
-  
-
   return (
     <div className="space-y-8 w-full mx-auto">
       {showNotification && (
@@ -101,7 +93,7 @@ export default function WishList({ titulo, sorteoId }: WishListProps) {
         {titulo}
       </h2>
 
-      <div className="bg-[#d35175] rounded-xl p-4 text-white w-full max-w-2xl mx-auto">
+      <div className="gradient-anim rounded-xl p-4 text-white w-full max-w-2xl mx-auto">
         {isEditable ? (
           <div className="relative">
             <textarea
@@ -116,14 +108,14 @@ export default function WishList({ titulo, sorteoId }: WishListProps) {
                   setTexto(textBeforeCursor + '\n' + textAfterCursor);
                 }
               }}
-              className="w-full rounded-md border border-gray-300 p-2 bg-white text-black resize-none max-h-[400px] h-[400px] overflow-y-auto whitespace-pre-wrap"
+              className="w-full rounded-md border border-gray-300 p-2 bg-white text-black resize-none max-h-[400px] h-[400px] overflow-y-auto whitespace-pre-wrap font-mono animate-typewriter text-xl"
             />
           </div>
         ) : (
           <div
-  className="w-full rounded-md p-2 bg-white text-black overflow-y-auto overflow-x-auto max-h-[400px] h-[400px] whitespace-pre-wrap"
-  dangerouslySetInnerHTML={{ __html: formatTextoConLinks(texto) }}
-/>
+            className="w-full rounded-md p-2 bg-white text-black overflow-y-auto overflow-x-auto max-h-[400px] h-[400px] whitespace-pre-wrap font-mono text-xl"
+            dangerouslySetInnerHTML={{ __html: formatTextoConLinks(texto) }}
+          />
         )}
         <div className="flex justify-between mt-4">
           {isEditable ? (
@@ -148,3 +140,4 @@ export default function WishList({ titulo, sorteoId }: WishListProps) {
     </div>
   );
 }
+
