@@ -5,12 +5,15 @@ import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebase/firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null); // No es necesario especificar el tipo de error
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter(); // Instanciar el router
+
  
 
   const handleSubmit = async (e) => {
@@ -24,6 +27,7 @@ export default function Login() {
       const userDoc = await getDoc(doc(db, "usuarios", user.uid));
       if (userDoc.exists()) {
         console.log("User document found:", userDoc.data());
+        router.push("/inicio")
         // Redirect or set user state here
       } else {
         console.log("User document not found for UID:", user.uid);
