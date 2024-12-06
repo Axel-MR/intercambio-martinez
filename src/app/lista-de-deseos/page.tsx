@@ -28,7 +28,6 @@ const ListasDeDeseos = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
       <header className="gradient-anim text-white p-4 text-center shadow-md">
         <Link href="/inicio" className="text-xl font-semibold hover:underline">
           Inicio
