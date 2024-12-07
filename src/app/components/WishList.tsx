@@ -6,6 +6,7 @@ import { faPenToSquare, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { db } from '../firebase/firebaseConfig';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
+
 interface WishListProps {
   titulo: string;
   sorteoId: string;
@@ -89,8 +90,9 @@ export default function WishList({ titulo, sorteoId }: WishListProps) {
       )}
 
       <h2 className="font-markazi text-3xl text-black text-center relative">
-        <span className="absolute inset-0 text-white text-shadow">{titulo}</span>
-        {titulo}
+        {/* Aplicamos el estilo text-glow */}
+        <span className="absolute inset-0 text-black text-shadow">{titulo}</span>
+        <span className="text-glow">{titulo}</span> {/* Título con estilo glow */}
       </h2>
 
       <div className="gradient-anim rounded-xl p-4 text-white w-full max-w-2xl mx-auto">
@@ -140,4 +142,3 @@ export default function WishList({ titulo, sorteoId }: WishListProps) {
     </div>
   );
 }
-

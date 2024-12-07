@@ -1,29 +1,33 @@
-'use client';
+"use client";
 
-import { signOut } from 'firebase/auth'; // Si usas Firebase Authentication
-import { getAuth } from 'firebase/auth';
-import Image from 'next/image';
-import Link from 'next/link';
-import WishList from '../components/WishList';
-import listaDeDeseosImg from '../../images/pokevidad.png';
+import { signOut } from "firebase/auth"; // Si usas Firebase Authentication
+import { getAuth } from "firebase/auth";
+import Image from "next/image";
+import Link from "next/link";
+import WishList from "../components/WishList"; // Usa este componente directamente
+import listaDeDeseosImg from "../../images/pokevidad.png";
+import { motion } from "framer-motion";
 
 const ListasDeDeseos = () => {
   const listas = [
-    { titulo: 'Claudia', id: 'id_Claudia' },
-    { titulo: 'Héctor', id: 'id_Hector' },
-    { titulo: 'Josué', id: 'id_Josue' },
-    { titulo: 'Kevin', id: 'id_Kevin' },
-    { titulo: 'Daniel', id: 'id_Daniel' },
+    { titulo: "Claudia", id: "id_Claudia" },
+    { titulo: "Héctor", id: "id_Hector" },
+    { titulo: "Josué", id: "id_Josue" },
+    { titulo: "Sam", id: "id_Sam" },
+    { titulo: "Kevin", id: "id_Kevin" },
+    { titulo: "Daniel", id: "id_Daniel" },
+    { titulo: "Amado", id: "id_Amado" },
   ];
 
   const handleSignOut = () => {
-    const auth = getAuth(); // Si usas Firebase
-    signOut(auth).then(() => {
-      // Redirige a la página de inicio de sesión o cualquier página que desees
-      window.location.href = '/login'; // O usa una función de redirección de Next.js
-    }).catch((error) => {
-      console.error('Error al cerrar sesión:', error);
-    });
+    const auth = getAuth();
+    signOut(auth)
+      .then(() => {
+        window.location.href = "/login";
+      })
+      .catch((error) => {
+        console.error("Error al cerrar sesión:", error);
+      });
   };
 
   return (
@@ -34,12 +38,8 @@ const ListasDeDeseos = () => {
         </Link>
       </header>
 
-      {/* Contenido principal */}
       <main className="flex-grow relative">
-        {/* Fondo animado */}
         <div id="background" className="absolute inset-0 z-0"></div>
-
-        {/* Fondo repetido con la imagen de fondo */}
         <div className="absolute inset-0 z-10">
           <Image
             src={listaDeDeseosImg}
@@ -51,26 +51,32 @@ const ListasDeDeseos = () => {
           />
         </div>
 
-        {/* Contenido */}
         <div className="relative z-20">
-          {/* Título principal con el logo de la lista de deseos */}
           <div className="text-center pt-16">
-            <h1 className="text-3xl font-semibold">Listas de Deseos</h1>
+            <h1 className="text-3xl font-semibold text-black">
+              Listas de Deseos
+            </h1>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8 mx-4 sm:mx-8 md:mx-12 lg:mx-16 mt-8">
-            {listas.map((lista) => {
-              // Verificamos si cada lista tiene las propiedades necesarias
-              if (!lista || !lista.id || !lista.titulo) {
-                return <div key={lista.id} className="text-red-500">Error: Datos inválidos para esta lista</div>;
-              }
-              return <WishList key={lista.id} titulo={lista.titulo} sorteoId={lista.id} />;
-            })}
+            {listas.map((lista) => (
+              <motion.div
+                key={lista.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="text-center"
+              >
+                <WishList
+                  titulo={lista.titulo} // Texto puro, sin JSX
+                  sorteoId={lista.id}
+                />
+              </motion.div>
+            ))}
           </div>
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="gradient-anim text-white p-4 text-center shadow-md mt-auto">
         <button
           onClick={handleSignOut}
