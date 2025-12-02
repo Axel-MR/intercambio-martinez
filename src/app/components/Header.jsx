@@ -103,13 +103,11 @@ export default function Header() {
                 </div>
                 <button
                   onClick={handleSignOut}
-                  className="group relative px-3 py-2 sm:px-4 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 overflow-hidden"
+                  aria-label="Cerrar sesión"
+                  title="Cerrar sesión"
+                  className="group relative p-2 sm:p-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center"
                 >
-                  <span className="relative z-10 flex items-center gap-1">
-                    <LogOut className="w-4 h-4" />
-                    <span>Salir</span>
-                  </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <LogOut className="w-5 h-5" />
                 </button>
               </>
             ) : (
