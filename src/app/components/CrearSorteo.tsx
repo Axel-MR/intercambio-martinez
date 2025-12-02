@@ -90,9 +90,10 @@ const CrearSorteo: React.FC<CrearSorteoProps> = ({ isAdmin }) => {
         alert(`Sorteo ejecutado (id: ${data.sorteoId}). Asignaciones: ${assignments.length}`);
       }
       console.table(assignments);
-    } catch (e) {
-      console.error('Error executing batch', e);
-      alert('Error al ejecutar sorteo: ' + (e.message || e));
+    } catch (error) {
+      console.error('Error executing batch', error);
+      const msg = error instanceof Error ? error.message : String(error);
+      alert('Error al ejecutar sorteo: ' + msg);
     }
   };
 
@@ -121,7 +122,8 @@ const CrearSorteo: React.FC<CrearSorteoProps> = ({ isAdmin }) => {
       setSorteoIdToManage('');
     } catch (err) {
       console.error('Error deleting sorteo', err);
-      alert('Error al eliminar sorteo: ' + (err.message || err));
+      const msg = err instanceof Error ? err.message : String(err);
+      alert('Error al eliminar sorteo: ' + msg);
     }
   };
 
