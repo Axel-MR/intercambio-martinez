@@ -36,6 +36,9 @@ yarn-error.log*
 # local env
 .env.local
 
+# Firebase Admin service account JSON (keep out of repo)
+navidad-mtz-firebase-adminsdk-*.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
