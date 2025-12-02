@@ -1,4 +1,6 @@
 import admin from 'firebase-admin';
+import fs from 'fs';
+import path from 'path';
 
 function initAdmin() {
   if (admin.apps && admin.apps.length) return admin;
@@ -6,9 +8,18 @@ function initAdmin() {
   // Support multiple env var names
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT || process.env.FIREBASE_SERVICE_ACCOUNT_BASE64 || null;
 
-  // If GOOGLE_APPLICATION_CREDENTIALS is set, let the SDK pick it up
+  // If FIREBASE_SERVICE_ACCOUNT not provided, optionally allow GOOGLE_APPLICATION_CREDENTIALS
   if (!raw) {
     if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+      // Resolve path and verify the file exists before letting the SDK use it.
+      const gac = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+      const resolved = path.isAbsolute(gac) ? gac : path.resolve(process.cwd(), gac);
+      if (!fs.existsSync(resolved)) {
+        throw new Error(
+          `GOOGLE_APPLICATION_CREDENTIALS is set but file not found at ${resolved}. ` +
+            'Remove this env var and set `FIREBASE_SERVICE_ACCOUNT` (base64) in Vercel instead.'
+        );
+      }
       try {
         admin.initializeApp();
         return admin;
