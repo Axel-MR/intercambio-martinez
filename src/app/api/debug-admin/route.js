@@ -1,28 +1,23 @@
 import { NextResponse } from 'next/server';
-import admin from 'firebase-admin';
+import initAdmin from '../../../lib/initAdmin';
 
 function tryInitAdmin() {
-  if (admin.apps && admin.apps.length) return { initialized: true };
-  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (!serviceAccount) return { initialized: false, reason: 'FIREBASE_SERVICE_ACCOUNT not set' };
-
-  let parsed;
   try {
-    if (serviceAccount.trim().startsWith('{')) {
-      parsed = JSON.parse(serviceAccount);
-    } else {
-      const decoded = Buffer.from(serviceAccount, 'base64').toString('utf8');
-      parsed = JSON.parse(decoded);
+    const adminInstance = initAdmin();
+    if (!adminInstance) return { initialized: false, reason: 'FIREBASE_SERVICE_ACCOUNT not set' };
+    // If initialized, try to pick project_id if available
+    const apps = adminInstance.apps ? adminInstance.apps.length : 0;
+    // attempt to read project_id from credential if possible
+    let project_id = null;
+    try {
+      const cert = adminInstance?.app?.options?.credential || null;
+      // not all runtimes expose cert here; leave null if not available
+    } catch (e) {
+      // ignore
     }
-  } catch (e) {
-    return { initialized: false, reason: 'Unable to parse FIREBASE_SERVICE_ACCOUNT: ' + e.message };
-  }
-
-  try {
-    admin.initializeApp({ credential: admin.credential.cert(parsed) });
-    return { initialized: true, project_id: parsed.project_id || null };
-  } catch (e) {
-    return { initialized: false, reason: 'Admin initialize failed: ' + e.message };
+    return { initialized: true, project_id };
+  } catch (err) {
+    return { initialized: false, reason: err.message || String(err) };
   }
 }
 

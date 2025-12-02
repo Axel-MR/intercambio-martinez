@@ -1,20 +1,5 @@
 import { NextResponse } from 'next/server';
-import admin from 'firebase-admin';
-
-function initAdmin() {
-  if (admin.apps && admin.apps.length) return admin;
-  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (!serviceAccount) return null;
-  let parsed;
-  try {
-    if (serviceAccount.trim().startsWith('{')) parsed = JSON.parse(serviceAccount);
-    else parsed = JSON.parse(Buffer.from(serviceAccount, 'base64').toString('utf8'));
-  } catch (e) {
-    throw new Error('Unable to parse FIREBASE_SERVICE_ACCOUNT: ' + e.message);
-  }
-  admin.initializeApp({ credential: admin.credential.cert(parsed) });
-  return admin;
-}
+import initAdmin from '../../../lib/initAdmin';
 
 // Helper: build allowed map and run backtracking to find perfect matching
 function buildAllowedMap(uids, exclusionsMap) {
@@ -67,9 +52,7 @@ function findMatching(uids, allowed) {
 export async function POST(req) {
   try {
     const adminInstance = initAdmin();
-    if (!adminInstance) {
-      return NextResponse.json({ error: 'FIREBASE_SERVICE_ACCOUNT not configured' }, { status: 500 });
-    }
+    if (!adminInstance) return NextResponse.json({ error: 'FIREBASE_SERVICE_ACCOUNT not configured' }, { status: 500 });
     const db = adminInstance.firestore();
 
     // Verify caller is admin via Firebase ID token in Authorization header

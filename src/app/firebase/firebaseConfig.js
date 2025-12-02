@@ -3,14 +3,16 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth"; // Importar el módulo de autenticación
 import { getFirestore } from "firebase/firestore"; // Importar Firestore
 
-// Your web app's Firebase configuration
+// Your web app's Firebase configuration read from environment variables.
+// These are public values and should use the NEXT_PUBLIC_ prefix so they
+// are available on the client.
 const firebaseConfig = {
-  apiKey: "AIzaSyBlFvZjx32RMTCpM0LnQruEtyPC0HvhWQ8",
-  authDomain: "navidad-mtz.firebaseapp.com",
-  projectId: "navidad-mtz",
-  storageBucket: "navidad-mtz.firebasestorage.app",
-  messagingSenderId: "232014688705",
-  appId: "1:232014688705:web:6129b5fd5418683c967f40"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || ""
 };
 
 // Initialize Firebase
