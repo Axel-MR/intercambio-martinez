@@ -53,7 +53,7 @@ export default function Register() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 gradient-anim mt-3 px-4">
+    <div className="flex items-center justify-center min-h-screen mt-3 px-4">
       <div className="bg-white shadow-lg rounded-lg w-full max-w-sm p-6">
         <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
           Intercambio Martínez

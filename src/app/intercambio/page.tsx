@@ -34,7 +34,7 @@ const Intercambio = () => {
   }
 
   return (
-    <div className="bg-gray-100 min-h-screen p-4 gradient-anim">
+    <div className="min-h-screen p-4">
       <h1 className="text-2xl font-bold mb-4">Página de Intercambio</h1>
 
       {/* Condicional para mostrar CrearSorteo solo si es admin */}

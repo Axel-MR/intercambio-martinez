@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleCheck, faSleigh, faGifts } from '@fortawesome/free-solid-svg-icons';
+import { faSleigh, faGifts } from '@fortawesome/free-solid-svg-icons';
+import { Gift, Check, Sparkles, Users } from 'lucide-react';
 import { db, auth } from '../firebase/firebaseConfig';
-import { collection, getDocs, addDoc, updateDoc, doc, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, doc, query, where, onSnapshot, getDoc } from 'firebase/firestore';
 import Modal from './Modal';
 import {motion} from 'framer-motion';
 
@@ -28,10 +29,12 @@ const NotificationModal = ({ show, onClose, message }) => {
 const SorteosDisponibles = () => {
   const [sorteos, setSorteos] = useState([]);
   const [user, setUser] = useState(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isAdmin, setIsAdmin] = useState(false);
   const [participaciones, setParticipaciones] = useState({});
   const [modalMessage, setModalMessage] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [assignedMap, setAssignedMap] = useState({});
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
@@ -74,6 +77,33 @@ const SorteosDisponibles = () => {
     return () => unsubscribe();
   }, []);
 
+  // When the user and sorteos are available, check assignment docs for this user
+  useEffect(() => {
+    if (!user || !sorteos || sorteos.length === 0) return;
+    const fetchAssignments = async () => {
+      try {
+        const newMap = { ...assignedMap };
+        for (const s of sorteos) {
+          // Only check if we don't already have an assignment recorded
+          if (newMap[s.id]) continue;
+          const assignRef = doc(db, 'sorteos', s.id, 'assignments', user.uid);
+          const snap = await getDoc(assignRef);
+          if (snap.exists()) {
+            const data = snap.data();
+            if (data && data.assignedToUid) {
+              newMap[s.id] = data.assignedToUid;
+            }
+          }
+        }
+        setAssignedMap(newMap);
+      } catch (err) {
+        console.error('Error fetching assignment docs for user:', err);
+      }
+    };
+    fetchAssignments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, sorteos]);
+
   const checkParticipaciones = async (userId) => {
     try {
       const participantesRef = collection(db, 'participantes');
@@ -94,21 +124,7 @@ const SorteosDisponibles = () => {
     }
   };
 
-  const cambiarEstadoSorteo = async (sorteoId, nuevoEstado) => {
-    try {
-      const sorteoRef = doc(db, 'sorteos', sorteoId);
-      await updateDoc(sorteoRef, {
-        estado: nuevoEstado
-      });
-      setModalMessage(`Estado del sorteo cambiado a: ${nuevoEstado}`);
-      setShowModal(true);
-    } catch (error) {
-      console.error('Error al cambiar el estado del sorteo:', error);
-      setModalMessage('Error al cambiar el estado del sorteo');
-      setShowModal(true);
-    }
-  };
-
+  // eliminar función cambiarEstadoSorteo porque no se usa actualmente (se removieron botones/admin)
   const verAmigoSecreto = async (amigoSecretoId) => {
     if (!amigoSecretoId) {
       setModalMessage("Aún no tienes un amigo secreto asignado.");
@@ -117,12 +133,11 @@ const SorteosDisponibles = () => {
     }
 
     try {
-      const usuariosRef = collection(db, 'usuarios');
-      const q = query(usuariosRef, where('__name__', '==', amigoSecretoId));
-      const snapshot = await getDocs(q);
+      const usuarioDocRef = doc(db, 'usuarios', amigoSecretoId);
+      const usuarioSnap = await getDoc(usuarioDocRef);
 
-      if (!snapshot.empty) {
-        const amigoSecreto = snapshot.docs[0].data();
+      if (usuarioSnap.exists()) {
+        const amigoSecreto = usuarioSnap.data();
         setModalMessage(`Tu amigo secreto es: ${amigoSecreto.username || 'Usuario sin nombre'}`);
       } else {
         setModalMessage('No se encontró la información del amigo secreto.');
@@ -237,6 +252,13 @@ const SorteosDisponibles = () => {
       }
   
       const participantesDisponiblesSinUsuarioActual = participantesDisponibles.filter(p => p.userId !== user.uid);
+
+      if (participantesDisponiblesSinUsuarioActual.length === 0) {
+        setModalMessage('No hay otros participantes disponibles para asignarte un amigo secreto en este momento.');
+        setShowModal(true);
+        return;
+      }
+
       const randomIndex = Math.floor(Math.random() * participantesDisponiblesSinUsuarioActual.length);
       const amigoSecreto = participantesDisponiblesSinUsuarioActual[randomIndex];
   
@@ -303,60 +325,7 @@ const SorteosDisponibles = () => {
     );
   };
 
-  const renderUserButton = (sorteo, participacion) => {
-    if (sorteo.estado === 'Disponible') {
-      return (
-        <button
-          onClick={() => participacion.id ? setModalMessage("Ya estás inscrito") : unirseASorteo(sorteo.id)}
-          className="mt-4 px-4 py-2 bg-[#c22451] text-white rounded-md font-bold hover:bg-[#ee3f3f] transition-colors flex items-center gap-2"
-        >
-          <FontAwesomeIcon icon={faSleigh} />
-          Inscríbete
-        </button>
-      );
-    } else if (sorteo.estado === 'Listo' && participacion.id) {
-      return (
-        <button
-          onClick={() => asignarAmigoSecreto(sorteo.id)}
-          className="mt-4 px-4 py-2 bg-[#c22451] text-white rounded-md font-bold hover:bg-[#ee3f3f] transition-colors"
-        >
-          Obtener amigo secreto
-        </button>
-      );
-    }
-    return null;
-  };
-
-  const renderAdminButtons = (sorteo) => {
-    if (!isAdmin) return null;
-
-    return (
-      <div className="flex gap-2 mt-4">
-        <button
-          onClick={() => cambiarEstadoSorteo(sorteo.id, 'Disponible')}
-          className={`px-4 py-2 text-white rounded-md font-bold transition-colors ${
-            sorteo.estado === 'Disponible' 
-              ? 'bg-blue-800 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700'
-          }`}
-          disabled={sorteo.estado === 'Disponible'}
-        >
-          Marcar Disponible
-        </button>
-        <button
-          onClick={() => cambiarEstadoSorteo(sorteo.id, 'Listo')}
-          className={`px-4 py-2 text-white rounded-md font-bold transition-colors ${
-            sorteo.estado === 'Listo'
-              ? 'bg-green-800 cursor-not-allowed'
-              : 'bg-green-600 hover:bg-green-700'
-          }`}
-          disabled={sorteo.estado === 'Listo'}
-        >
-          Marcar Listo
-        </button>
-      </div>
-    );
-  };
+  // Admin buttons and user button render helpers were inlined earlier; removed unused helpers to satisfy lint.
 
   return (
     <div className="space-y-8">
@@ -375,43 +344,86 @@ const SorteosDisponibles = () => {
 
       {sorteos.map((sorteo, index) => {
         const participacion = participaciones[sorteo.id] || {};
+        const hasParticipacion = Boolean(participacion.id || assignedMap[sorteo.id] || (sorteo.participants && Array.isArray(sorteo.participants) && sorteo.participants.length > 0));
         return (
-          <motion.div 
+          <motion.div
             key={sorteo.id}
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ 
-              duration: 0.5, 
-              delay: 0.1 * (index + 1) 
-            }}
-            className="bg-gray-100 p-6 rounded-lg shadow-md text-black"
+            transition={{ duration: 0.5, delay: 0.1 * (index + 1) }}
+            className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-red-100"
           >
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-2xl font-bold">{sorteo.nombre}</h3>
-            </div>
-            
-            <p className="mb-2">Descripción: {sorteo.descripcion}</p>
-            <p className="mb-2">
-              Fecha de creación: {sorteo.createdAt && new Date(sorteo.createdAt.toDate()).toLocaleDateString()}
-            </p>
-            <p className="mb-2">Estado: {sorteo.estado || 'Disponible'}</p>
-            <p className="mb-4">Participantes:</p>
-            <ListaParticipantes sorteoId={sorteo.id} />
-            
-            {renderUserButton(sorteo, participacion)}
-            {renderAdminButtons(sorteo)}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 via-green-500 to-red-500"></div>
+            <div className="absolute top-2 right-2 text-6xl opacity-5">🎄</div>
 
-            {participacion.amigoSecretoId && (
-              <div className="flex gap-2 items-center mt-4">
-                <button
-                  onClick={() => verAmigoSecreto(participacion.amigoSecretoId)}
-                  className="px-4 py-2 bg-[#3cb1df] text-white rounded-md font-bold hover:bg-[#ee3f3f] transition-colors"
-                >
-                  Ver amigo secreto
-                </button>
-                <FontAwesomeIcon icon={faCircleCheck} className="text-[#1DB954]" size="lg" />
+            <div className="relative p-5 sm:p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex-1">
+                  <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-yellow-500" />
+                    {sorteo.nombre}
+                  </h3>
+                  <p className="text-sm sm:text-base text-gray-600 mb-3">{sorteo.descripcion}</p>
+                </div>
               </div>
-            )}
+
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Users className="w-5 h-5 text-blue-600" />
+                  <p className="font-semibold text-gray-700">Participantes:</p>
+                </div>
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-100">
+                  <ListaParticipantes sorteoId={sorteo.id} />
+                </div>
+              </div>
+
+              {/* Admin state buttons removed per request */}
+
+              {sorteo.estado === 'Disponible' && (
+                <div className="mt-2">
+                  {!participacion.id ? (
+                    <button
+                      onClick={() => unirseASorteo(sorteo.id)}
+                      className="mt-2 px-4 py-2 bg-[#c22451] text-white rounded-md font-bold hover:bg-[#ee3f3f] transition-colors flex items-center gap-2"
+                    >
+                      <FontAwesomeIcon icon={faSleigh} />
+                      Inscríbete
+                    </button>
+                  ) : (
+                    <p className="text-sm text-gray-600">Ya estás inscrito</p>
+                  )}
+                </div>
+              )}
+
+              {sorteo.estado === 'Listo' && !hasParticipacion && participacion.id && !assignedMap[sorteo.id] && (
+                <div>
+                  <button
+                    onClick={() => asignarAmigoSecreto(sorteo.id)}
+                    className="mt-4 px-4 py-2 bg-[#c22451] text-white rounded-md font-bold hover:bg-[#ee3f3f] transition-colors"
+                  >
+                    Obtener amigo secreto
+                  </button>
+                </div>
+              )}
+
+              {hasParticipacion && (
+                <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-200">
+                  <button
+                    onClick={() => verAmigoSecreto(participacion.amigoSecretoId || assignedMap[sorteo.id])}
+                    className="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 via-pink-500 to-red-600 text-white rounded-xl font-bold hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
+                  >
+                    <Gift className="w-5 h-5" />
+                    <span className="text-sm sm:text-base">Ver amigo secreto</span>
+                  </button>
+                  <div className="flex-shrink-0 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                    <Check className="w-6 h-6 text-white" strokeWidth={3} />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="absolute bottom-2 left-2 text-2xl opacity-5">✨</div>
+            <div className="absolute bottom-2 right-2 text-2xl opacity-5">⭐</div>
           </motion.div>
         );
       })}

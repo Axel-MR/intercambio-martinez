@@ -7,8 +7,9 @@ import SorteosDisponibles from "../components/SorteosDisponibles";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import GlowButton from "../components/GlowButtons";
+import { Gift, AlertCircle, Sparkles } from "lucide-react";
 
-const db = getFirestore(); // Inicializa Firestore
+const db = getFirestore();
 
 export default function Inicio() {
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -42,62 +43,132 @@ export default function Inicio() {
 
   if (loading) {
     return (
-      <div className="w-full h-screen flex justify-center items-center">
-        <p>Cargando...</p>
+      <div className="w-full h-screen flex flex-col justify-center items-center bg-gradient-to-br from-red-50 via-white to-green-50">
+        <div className="relative">
+          <Gift className="w-16 h-16 text-red-600 animate-pulse" />
+          <Sparkles className="w-6 h-6 text-yellow-500 absolute -top-2 -right-2 animate-ping" />
+        </div>
+        <p className="mt-4 text-lg font-semibold text-gray-700">Cargando...</p>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
-      {/* Fondo con animación */}
-      <div className="absolute inset-0 gradient-anim opacity-30"></div>
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-amber-50 to-green-50">
+      {/* Decoración de fondo sutil */}
+      <div className="fixed inset-0 opacity-5 pointer-events-none">
+        <div className="absolute top-20 left-10 text-8xl">★</div>
+        <div className="absolute top-40 right-20 text-6xl">♦</div>
+        <div className="absolute bottom-40 left-1/4 text-7xl">★</div>
+        <div className="absolute bottom-20 right-1/3 text-5xl">♦</div>
+      </div>
 
       {/* Contenido principal */}
-      <div className="relative z-10 flex justify-center items-center w-full h-full p-6">
-        <div className="flex flex-col space-y-6 max-w-4xl w-full h-full overflow-auto bg-gray-200 rounded-lg p-4 shadow-md">
-          {/* Componente de sorteos */}
-          <div className="flex-grow">
-            <SorteosDisponibles />
-          </div>
+      <div className="relative z-10 max-w-6xl mx-auto px-4 py-8 space-y-8">
+        
+        {/* Sección de sorteos disponibles */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <SorteosDisponibles />
+        </motion.div>
 
-          {/* Reglas */}
+        {/* Card de reglas - Diseño moderno */}
+        <motion.div
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="relative bg-white rounded-2xl shadow-lg border-2 border-red-200 overflow-hidden"
+        >
+          {/* Borde decorativo superior */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 via-green-500 to-red-500"></div>
+          
+          <div className="p-6 sm:p-8">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                <AlertCircle className="w-7 h-7 text-white" />
+              </div>
+              
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  Reglas del Intercambio
+                  <Sparkles className="w-5 h-5 text-yellow-500" />
+                </h2>
+                
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mt-0.5">
+                      <span className="text-white text-xs font-bold">1</span>
+                    </div>
+                    <p className="text-gray-700 leading-relaxed">
+                      Edita tu lista de deseos con <span className="font-semibold text-red-600">mínimo 2 opciones</span> con enlace de compra o explicación de dónde conseguir el regalo.
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center mt-0.5">
+                      <span className="text-white text-xs font-bold">2</span>
+                    </div>
+                    <p className="text-gray-700 leading-relaxed">
+                      El precio tiene que ser de <span className="font-semibold text-green-600">$500 pesos</span> aproximadamente.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Línea decorativa */}
+                <div className="flex items-center gap-2 mt-6">
+                  <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-red-300 to-transparent"></div>
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-green-300 to-transparent"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Botón de Lista de Deseos */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="flex flex-col items-center justify-center py-8"
+        >
+          <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-red-600 via-green-600 to-red-600 bg-clip-text text-transparent mb-6 flex items-center gap-2">
+            <Gift className="w-8 h-8 text-red-600" />
+            Lista de Deseos
+          </h2>
+          <GlowButton />
+        </motion.div>
+
+        {/* Crear Sorteo (solo para admin) */}
+        {userRole === "admin" && (
           <motion.div
-            className="bg-gray-100 text-gray-700 p-4 rounded-md shadow"
-            initial={{ opacity: 0, x: -100 }} // Comienza desde la izquierda
-            animate={{ opacity: 1, x: 0 }} // Se mueve a su posición original
-            transition={{ duration: 1, delay: 0.8 }} // Aparece a los 0.8 segundos
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            className="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl shadow-lg border-2 border-purple-200 overflow-hidden"
           >
-            <h2 className="text-lg font-semibold mb-2 ">REGLAS:</h2>
-            <p className="mb-2 ">
-              Edita tu lista de deseos con mínimo 2 opciones con enlace de
-              compra o explicación de dónde conseguir el regalo.
-            </p>
-            <p className="mb-2">
-              El precio tiene que ser de 500 pesos aproximadamente.
-            </p>
-            <p>
-              Cuando el Sorteo esté en{" "}
-              <span className="font-semibold">&quot;Disponible&quot;</span>, solo puedes
-              inscribirte, y cuando esté en{" "}
-              <span className="font-semibold">&quot;Listo&quot;</span> podrás obtener a tu
-              amigo secreto.
-            </p>
-          </motion.div>
-
-          {/* Botón */}
-
-          <div className="flex flex-col justify-center items-center h-screen bg-gray-100">
-            <h1 className="text-2xl font-bold mb-4 text-gray-700">Lista de Deseos</h1>
-            <GlowButton />
-          </div>
-
-          {/* Crear Sorteo (solo para admin) */}
-          {userRole === "admin" && (
-            <div className="flex-grow">
+            {/* Badge de Admin */}
+            <div className="absolute top-4 right-4 px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full shadow-lg flex items-center gap-1">
+              <Sparkles className="w-3 h-3" />
+              ADMIN
+            </div>
+            
+            <div className="p-6">
               <CrearSorteo isAdmin={true} />
             </div>
-          )}
+          </motion.div>
+        )}
+      </div>
+
+      {/* Footer decorativo */}
+      <div className="relative z-10 mt-16 pb-8">
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
       </div>
     </div>

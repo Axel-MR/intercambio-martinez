@@ -1,123 +1,76 @@
 "use client";
+import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGift, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../firebase/firebaseConfig";
-import { doc, getDoc } from "firebase/firestore";
+import { faGift } from "@fortawesome/free-solid-svg-icons";
+import { signInWithCustomToken } from "firebase/auth";
+import { auth } from "../firebase/firebaseConfig";
 import { useRouter } from "next/navigation";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState(null); // No es necesario especificar el tipo de error
-  const [showPassword, setShowPassword] = useState(false);
-  const router = useRouter(); // Instanciar el router
+  const [error, setError] = useState(null);
+  const [tokenLogin, setTokenLogin] = useState("");
+  // token-only login
+  const router = useRouter();
 
- 
 
-  const handleSubmit = async (e) => {
+  const handleTokenLogin = async (e) => {
     e.preventDefault();
     try {
-      console.log("Attempting to sign in with email:", email);
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      console.log("User signed in successfully:", user.uid);
-  
-      const userDoc = await getDoc(doc(db, "usuarios", user.uid));
-      if (userDoc.exists()) {
-        console.log("User document found:", userDoc.data());
-        router.push("/inicio")
-        // Redirect or set user state here
-      } else {
-        console.log("User document not found for UID:", user.uid);
-        setError("Usuario no encontrado en la base de datos.");
+      if (!tokenLogin) {
+        setError("Ingresa un token");
+        return;
       }
+
+      const res = await fetch("/api/token-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: tokenLogin }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Error iniciando con token");
+        return;
+      }
+
+      const customToken = data.customToken;
+      await signInWithCustomToken(auth, customToken);
+      router.push("/inicio");
     } catch (err) {
-      console.error("Error details:", err);
-      setError(err instanceof Error ? "Error al iniciar sesión: " + err.message : "Error desconocido");
+      setError(err instanceof Error ? err.message : "Error desconocido");
     }
   };
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 gradient-anim mt-3 px-4">
-      <div className="bg-white shadow-lg rounded-lg w-full max-w-sm p-6">
-        <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Intercambio Martínez
-        </h1>
+    <div className="flex items-center justify-center min-h-screen mt-3 px-4">
+      <div className="bg-white/90 shadow-lg rounded-lg w-full max-w-sm p-6">
+        <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">Intercambio Martínez</h1>
 
         <div className="flex justify-center mb-4">
           <FontAwesomeIcon icon={faGift} size="3x" className="text-red-500" />
         </div>
 
-        <h4 className="text-2xl font-bold text-center text-gray-700 mb-6">
-          Iniciar Sesión
-        </h4>
+        <h4 className="text-2xl font-bold text-center text-gray-700 mb-6">Iniciar Sesión</h4>
 
-        {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">
-            {error}
-          </div>
-        )}
+        {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-600 mb-1"
-            >
-              Correo Electrónico
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Ingresa tu correo"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none text-gray-900"
-            />
-          </div>
-
-          <div className="relative">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-600 mb-1"
-            >
-              Contraseña
-            </label>
-            <input
-              type={showPassword ? "text" : "password"}
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Ingresa tu contraseña"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none text-gray-500"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute top-1/2 right-3 transform -translate-y-.5"
-            >
-              <FontAwesomeIcon
-                icon={showPassword ? faEyeSlash : faEye}
-                className="text-gray-600"
+        <div className="space-y-4">
+          <form onSubmit={handleTokenLogin} className="space-y-4">
+            <div>
+              <label htmlFor="token" className="block text-sm font-medium text-gray-600 mb-1">Token</label>
+              <input
+                id="token"
+                value={tokenLogin}
+                onChange={(e) => setTokenLogin(e.target.value)}
+                placeholder="Ingresa tu token de acceso"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none text-gray-900"
               />
+            </div>
+            <button type="submit" className="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors">
+              Iniciar con Token
             </button>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors"
-          >
-            Iniciar Sesión
-          </button>
-          <p className="text-center text-sm text-gray-600 mt-4">
-  ¿No tienes cuenta?{" "}
-  <a href="/register" className="text-red-500 hover:underline">
-    Regístrate aquí
-  </a>
-</p>
-
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );
