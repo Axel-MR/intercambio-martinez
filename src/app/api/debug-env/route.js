@@ -14,7 +14,7 @@ export async function GET() {
       const decoded = Buffer.from(trimmed, 'base64').toString('utf8');
       JSON.parse(decoded);
       decodesToJson = true;
-    } catch (e) {
+    } catch {
       decodesToJson = false;
     }
 
